@@ -90,6 +90,18 @@ void _set_set_external_tags_cb(cb_set_external_tags_t cb)
     cb_set_external_tags = cb;
 }
 
+
+/*! \fn PyObject *get_version(PyObject *self, PyObject *args)
+ *  \brief return the agent version as a Python string.
+ *  \return a Python String (byte for Python2 and unicode for Python3).
+ *
+ *  This function will call the callback set by '_set_get_version_cb' to fetch
+ *  the Agent version and converts it to the right string type for Python (byte
+ *  for Python2 and unicode for Python3).
+ *
+ *  If the callback is not initialized or return NULL, Python's None type is
+ *  returned.
+ */
 PyObject *get_version(PyObject *self, PyObject *args)
 {
     if (cb_get_version == NULL) {
@@ -107,17 +119,26 @@ PyObject *get_version(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-/**
- * Before Six the Agent used reflection to inspect the contents of a configuration
- * value and the CPython API to perform conversion to a Python equivalent. Such
- * a conversion wouldn't be possible in a Python-agnostic way so we use YAML to
- * pass the data from Go to Python. The configuration value is loaded in the Agent,
- * marshalled into YAML and passed as a `char*` to Six, where the string is
- * decoded back to Python and passed to the caller. YAML usage is transparent to
- * the caller, who would receive a Python object as returned from `yaml.safe_load`.
- * YAML is used instead of JSON since the `json.load` return unicode for
- * string, for python2, which would be a breaking change from the previous
- * version of the agent.
+/*! \fn PyObject *get_config(PyObject *self, PyObject *args)
+ *  \brief return the agent configuration as a Python object.
+ *  \return a Python dict containing the agent configuration.
+ *
+ *  This function will call the callback set by '_set_get_config_cb' to fetch
+ *  the Agent configuration and converts it to Python types.
+ *
+ *  Before Six the Agent used reflection to inspect the contents of a
+ *  configuration value and the CPython API to perform conversion to a Python
+ *  equivalent. Such a conversion wouldn't be possible in a Python-agnostic way
+ *  so we use YAML to pass the data from Go to Python. The configuration value
+ *  is loaded in the Agent, marshalled into YAML and passed as a `char*` to
+ *  Six, where the string is decoded back to Python and passed to the caller.
+ *  YAML usage is transparent to the caller, who would receive a Python object
+ *  as returned from `yaml.safe_load`.  YAML is used instead of JSON since the
+ *  `json.load` return unicode for string, for python2, which would be a
+ *  breaking change from the previous version of the agent.
+ *
+ *  If the callback is not initialized or return NULL, Python's None type is
+ *  returned.
  */
 PyObject *get_config(PyObject *self, PyObject *args)
 {
@@ -145,14 +166,23 @@ PyObject *get_config(PyObject *self, PyObject *args)
     return value;
 }
 
-/**
- * datadog_agent.headers() isn't used by any official integration provided by
- * Datdog but custom checks might still rely on that.
- * Currently the contents of the returned string are the same but defined in two
- * different places:
+/*! \fn PyObject *headers(PyObject *self, PyObject *args, PyObject *kwargs)
+ *  \brief (deprecated) returns a Python dict containing headers information
+ *  for HTTP(S) calls.
+ *  \return a Python dict.
  *
- *  1. github.com/DataDog/integrations-core/datadog_checks_base/datadog_checks/base/utils/headers.py
- *  2. github.com/DataDog/datadog-agent/pkg/util/common.go
+ *  This function will call the callback set by '_set_headers_cb' to fetch
+ *  the HTTP headers and converts it to Python using YAML.
+ *
+ *  datadog_agent.headers() isn't used by any official integration provided by
+ *  Datdog but custom checks might still rely on that.  Currently the contents
+ *  of the returned string are the same but defined in two different places:
+ *
+ *    1. github.com/DataDog/integrations-core/datadog_checks_base/datadog_checks/base/utils/headers.py
+ *    2. github.com/DataDog/datadog-agent/pkg/util/common.go
+ *
+ *  If the callback is not initialized or return NULL, Python's None type is
+ *  returned.
  */
 PyObject *headers(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -197,6 +227,17 @@ PyObject *_public_headers(PyObject *self, PyObject *args, PyObject *kwargs)
     return headers(self, args, kwargs);
 }
 
+/*! \fn PyObject *get_hostname(PyObject *self, PyObject *args)
+ *  \brief return the agent hostname as a Python string.
+ *  \return a Python String (byte for Python2 and unicode for Python3).
+ *
+ *  This function will call the callback set by '_set_get_hostname_cb' to fetch
+ *  the Agent hostname and converts it to the right string type for Python
+ *  (byte for Python2 and unicode for Python3).
+ *
+ *  If the callback is not initialized or return NULL, Python's None type is
+ *  returned.
+ */
 PyObject *get_hostname(PyObject *self, PyObject *args)
 {
     // callback must be set
@@ -215,6 +256,18 @@ PyObject *get_hostname(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+/*! \fn PyObject *get_clustername(PyObject *self, PyObject *args)
+ *  \brief return the current clustername (if it exists) where the agent is
+ *  running as a Python string.
+ *  \return a Python String (byte for Python2 and unicode for Python3).
+ *
+ *  This function will call the callback set by '_set_get_clustername_cb' to
+ *  fetch the Agent cluster name and converts it to the right string type for
+ *  Python (byte for Python2 and unicode for Python3).
+ *
+ *  If the callback is not initialized or return NULL, Python's None type is
+ *  returned.
+ */
 PyObject *get_clustername(PyObject *self, PyObject *args)
 {
     // callback must be set
@@ -233,6 +286,21 @@ PyObject *get_clustername(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+/*! \fn PyObject *log_message(PyObject *self, PyObject *args)
+ *  \brief forward a log line from python to the agent logger.
+ *  \param self A PyObject * pointer to self - the datadog_agent module.
+ *  \param args A PyObject * pointer to the python args or kwargs: the message
+ *  (string) and the log level (int).
+ *  \return Python's none type.
+ *
+ *  This function will call the callback set by '_set_log_cb' to forward log
+ *  messages from Python to the Agent's logger. This function is used by a
+ *  custom "logging.Handler" set at the root Logger of the "logging" python
+ *  package.
+ *
+ *  If the callback is not initialized or return NULL, Python's None type is
+ *  returned.
+ */
 static PyObject *log_message(PyObject *self, PyObject *args)
 {
     // callback must be set
@@ -252,10 +320,31 @@ static PyObject *log_message(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+/*! \fn PyObject *set_external_tags(PyObject *self, PyObject *args)
+ *  \brief set external hostname tags.
+ *  \return Python's none type or raise an exception.
+ *
+ *  This function forward external hostname's tags to the agent to be sent as
+ *  metadata. For backward compatibility the Python payload must be:
+ *    [
+ *      ('hostname', {'source_type': ['tag1', 'tag2']}),
+ *      ...
+ *    ]
+ *
+ *  This function will ignore invalid tags type (anything other than a string).
+ *
+ *  If the callback is not initialized or return NULL, Python's None type is
+ *  returned.
+ */
 // set_external_tags receive the following data:
 // [('hostname', {'source_type': ['tag1', 'tag2']})]
 static PyObject *set_external_tags(PyObject *self, PyObject *args)
 {
+    // callback must be set
+    if (cb_set_external_tags == NULL) {
+        Py_RETURN_NONE;
+    }
+
     PyObject *input_list = NULL;
     PyGILState_STATE gstate = PyGILState_Ensure();
 
