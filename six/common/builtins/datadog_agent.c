@@ -55,36 +55,64 @@ void Py2_init_datadog_agent()
 }
 #endif
 
+/*! \fn void _set_get_version_cb(cb_get_version_t cb)
+ *  \brief set the callback for 'get_version' python function
+ *  \return nothing.
+ */
 void _set_get_version_cb(cb_get_version_t cb)
 {
     cb_get_version = cb;
 }
 
+/*! \fn void _set_get_config_cb(cb_get_config_t cb)
+ *  \brief set the callback for 'get_config' python function
+ *  \return nothing.
+ */
 void _set_get_config_cb(cb_get_config_t cb)
 {
     cb_get_config = cb;
 }
 
+/*! \fn void _set_headers_cb(cb_headers_t cb)
+ *  \brief set the callback for 'headers' python function
+ *  \return nothing.
+ */
 void _set_headers_cb(cb_headers_t cb)
 {
     cb_headers = cb;
 }
 
+/*! \fn void _set_get_hostname_cb(cb_get_hostname_t cb)
+ *  \brief set the callback for 'get_hostname' python function
+ *  \return nothing.
+ */
 void _set_get_hostname_cb(cb_get_hostname_t cb)
 {
     cb_get_hostname = cb;
 }
 
+/*! \fn void _set_get_clustername_cb(cb_get_clustername_t cb)
+ *  \brief set the callback for 'get_clustername' python function
+ *  \return nothing.
+ */
 void _set_get_clustername_cb(cb_get_clustername_t cb)
 {
     cb_get_clustername = cb;
 }
 
+/*! \fn void _set_log_cb(cb_log_t cb)
+ *  \brief set the callback for 'log' python function
+ *  \return nothing.
+ */
 void _set_log_cb(cb_log_t cb)
 {
     cb_log = cb;
 }
 
+/*! \fn void _set_set_external_tags_cb(cb_set_external_tags_t cb)
+ *  \brief set the callback for 'set_external_tags' python function
+ *  \return nothing.
+ */
 void _set_set_external_tags_cb(cb_set_external_tags_t cb)
 {
     cb_set_external_tags = cb;

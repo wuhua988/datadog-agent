@@ -8,6 +8,31 @@
 #include <Python.h>
 #include <six_types.h>
 
+
+/*! \file datadog_agent.h
+    \brief Six datadog_agent builtin header file.
+
+    The prototypes here defined provide functions to initialize the python
+    datadog_agent builtin module, and set its relevant callbacks for the six
+    caller.
+*/
+/*! \fn PyMODINIT_FUNC PyInit_datadog_agent(void)
+    \brief Initializes the datadog_agent builtin python module.
+
+    The datadog_agent python builtin is created and registered here as per the
+    module_def PyMethodDef definition in `datadog_agent.c` with the corresponding
+    C-implemented python methods. A fresh reference to the module is created
+    here. This function is python3 only.
+*/
+/*! \fn void Py2_init_datadog_agent()
+    \brief Initializes the datadog_agent builtin python module.
+
+    The datadog_agent python builtin is created and registered here as per the
+    module_def PyMethodDef definition in `datadog_agent.c` with the
+    corresponding C-implemented python methods . A fresh reference to the
+    module is created here. This function is python2 only.
+*/
+
 #ifdef DATADOG_AGENT_THREE
 PyMODINIT_FUNC PyInit_datadog_agent(void);
 #endif
