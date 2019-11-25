@@ -500,7 +500,7 @@ agent_deb-arm-a7:
     DESTINATION_DEB: 'datadog-agent_7_arm64.deb'
     DESTINATION_DBG_DEB: 'datadog-agent-dbg_7_arm64.deb'
   before_script:
-    - source /root/.bashrc 
+    - source /root/.bashrc
     - inv -e deps --verbose --dep-vendor-only
     - export RELEASE_VERSION=$RELEASE_VERSION_7
   <<: *skip_when_unwanted_on_6
@@ -2209,7 +2209,7 @@ latest_release_7:
 # - set the IMAGE and TAG envvars
 # - in the gitlab pipeline view, trigger the step (in the first column)
 #
-.delete_docker_tag:
+delete_docker_tag:
   tags: [ "runner:docker", "size:large" ]
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/docker-notary:0.6.1
   before_script:
@@ -2223,14 +2223,41 @@ latest_release_7:
   when: manual
   variables:
     <<: *docker_hub_variables
-    IMAGE: ""  # image name, for example "agent"
-    TAG: ""  # tag name, for example "6.9.0"
+    IMAGE: "agent"  # image name, for example "agent"
+    TAG: "7.15.1"  # tag name, for example "6.9.0"
     ORGANIZATION: "datadog"
   script:
     - if [[ -z "$IMAGE" ]]; then echo "Need an image"; exit 1; fi
     - if [[ -z "$TAG" ]]; then echo "Need a tag to delete"; exit 1; fi
     - inv -e docker.delete ${ORGANIZATION} ${IMAGE} ${TAG} ${DOCKER_TOKEN} &>/dev/null
-
+#
+# Use this step to delete a tag of a given image
+# We call the Docker Hub API because docker cli doesn't support deleting tags
+# - remove the leading dot from the name
+# - set the IMAGE and TAG envvars
+# - in the gitlab pipeline view, trigger the step (in the first column)
+#
+delete_docker_tag-jmx:
+  tags: [ "runner:docker", "size:large" ]
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/docker-notary:0.6.1
+  before_script:
+    - DOCKER_REGISTRY_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.datadog-agent.$DOCKER_REGISTRY_LOGIN_SSM_KEY --with-decryption --query "Parameter.Value" --out text)
+    - PASS=$(aws ssm get-parameter --region us-east-1 --name ci.datadog-agent.$DOCKER_REGISTRY_PWD_SSM_KEY --with-decryption --query "Parameter.Value" --out text)
+    - pip install -r requirements.txt
+    - |
+      export DOCKER_TOKEN=`curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'$DOCKER_REGISTRY_LOGIN'", "password": "'$PASS'"}' https://hub.docker.com/v2/users/login/ | python -c 'import sys, json; print(json.load(sys.stdin)["token"].strip())'`
+  dependencies: [] # Don't download Gitlab artefacts
+  stage: source_test
+  when: manual
+  variables:
+    <<: *docker_hub_variables
+    IMAGE: "agent"  # image name, for example "agent"
+    TAG: "7.15.1-jmx"  # tag name, for example "6.9.0"
+    ORGANIZATION: "datadog"
+  script:
+    - if [[ -z "$IMAGE" ]]; then echo "Need an image"; exit 1; fi
+    - if [[ -z "$TAG" ]]; then echo "Need a tag to delete"; exit 1; fi
+    - inv -e docker.delete ${ORGANIZATION} ${IMAGE} ${TAG} ${DOCKER_TOKEN} &>/dev/null
 # invalidate cloudfront cache
 deploy_cloudfront_invalidate:
   <<: *run_when_triggered
