@@ -114,15 +114,14 @@ build do
 
     copy 'bin/process-agent/process-agent.exe', "#{Omnibus::Config.source_dir()}/datadog-agent/src/github.com/DataDog/datadog-agent/bin/agent"
   else
-    # TODO(processes): change this to be ebpf:latest when we move to go1.12.x on the agent
-    command "invoke -e process-agent.build --go-version=1.10.1", :env => env
+    command "invoke -e process-agent.build", :env => env
     copy 'bin/process-agent/process-agent', "#{install_dir}/embedded/bin"
   end
 
 
   # Build the system-probe
   if linux?
-    command "invoke -e system-probe.build --go-version=1.10.1", :env => env
+    command "invoke -e system-probe.build", :env => env
     copy 'bin/system-probe/system-probe', "#{install_dir}/embedded/bin"
     block { File.chmod(0755, "#{install_dir}/embedded/bin/system-probe") }
   end
