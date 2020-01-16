@@ -1,6 +1,7 @@
 include: 'https://gitlab-templates.ddbuild.io/slack-notifier/v1/template.yml'
 
 stages:
+  - cancel_pipeline
   - source_test
   - binary_build
   - integration_test
@@ -18,6 +19,12 @@ stages:
   - e2e
   - testkitchen_cleanup
   - notify
+
+cancel_pipeline:
+  stage: cancel_pipeline
+  tags: [ "runner:main" ]
+  script:
+    - exit 1
 
 variables:
   # The SRC_PATH is in the GOPATH of the builders which
