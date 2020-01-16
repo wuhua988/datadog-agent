@@ -171,7 +171,12 @@ def golangci_lint(ctx, targets, rtloader_root=None, build_tags=None):
     tags = build_tags or get_default_build_tags()
     _, _, env = get_build_flags(ctx, rtloader_root=rtloader_root)
 
-    ctx.run("golangci-lint run -c .golangci.yml --build-tags '{}' {}".format(" ".join(tags), " ".join(args)), env=env)
+    # Using custom env to limit memory used by golangci, otherwise it will OOM on most environments
+    # See https://github.com/golangci/golangci-lint/issues/337
+    # See https://github.com/golangci/golangci-lint/issues/898
+    custom_env = env.copy()
+    custom_env["GCGO"] = "30"
+    ctx.run("golangci-lint run -c .golangci.yml --build-tags '{}' {}".format(" ".join(tags), " ".join(args)), env=custom_env)
 
     # golangci exits with status 1 when it finds an issue, if we're here
     # everything went smooth
