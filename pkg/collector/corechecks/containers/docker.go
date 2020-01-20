@@ -175,6 +175,7 @@ func (d *DockerCheck) Run() error {
 	collectingContainerSizeDuringThisRun := d.instance.CollectContainerSize && d.collectContainerSizeCounter == 0
 
 	images := map[string]*containerPerImage{}
+	currentUnixTime := time.Now().Unix()
 	for _, c := range cList {
 		updateContainerRunningCount(images, c)
 		if c.State != containers.ContainerRunningState || c.Excluded {
@@ -184,6 +185,8 @@ func (d *DockerCheck) Run() error {
 		if err != nil {
 			log.Errorf("Could not collect tags for container %s: %s", c.ID[:12], err)
 		}
+
+		d.reportUptime(c.StartedAt, currentUnixTime, tags, sender)
 
 		if c.CPU != nil {
 			sender.Rate("docker.cpu.system", float64(c.CPU.System), "", tags)
@@ -360,6 +363,12 @@ func (d *DockerCheck) Run() error {
 
 	sender.Commit()
 	return nil
+}
+
+func (d *DockerCheck) reportUptime(startTime int64, currentUnixTime int64, tags []string, sender aggregator.Sender) {
+	if startTime != 0 && currentUnixTime-startTime > 0 {
+		sender.Gauge("docker.uptime", float64(currentUnixTime-startTime), "", tags)
+	}
 }
 
 func (d *DockerCheck) reportIOMetrics(io *cmetrics.CgroupIOStat, tags []string, sender aggregator.Sender) {
